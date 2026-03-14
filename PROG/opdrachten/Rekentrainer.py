@@ -139,7 +139,7 @@ class IOBuffer:
     def append(self, text):
         self.value += text
 
-    def get_and_remove_last_sum(self):
+    def get_last_sum(self):
         pattern = re.compile(r"""
             (-?(?:\d+(?:\.\d+)?|\.\d+))   # eerste getal
             .*?                           # willekeurige tekst ertussen
@@ -152,9 +152,10 @@ class IOBuffer:
         if len(matches) == 0:
             raise IOError('Er werd in je functie om invoer gevraagd, maar er is in de geprinte tekst geen som gevonden!')
 
-        self.value = ""
         return matches[-1]
 
+    def clear_buffer(self):
+        self.value = ""
 
 def __create_fake_open(original_open):
     def fake_open(file, mode='r', buffering=-1, encoding=None, errors=None, newline=None, closefd=True, opener=None):
@@ -165,7 +166,7 @@ def __create_fake_open(original_open):
 
 def __create_fake_print(original_print, buffer):
     def fake_print(*args, sep=' ', end='\n', file=None, flush=True):
-        buffer.append(sep.join(args) + end)
+        buffer.append(sep.join([str(arg) for arg in args]) + end)
         original_print(*args, sep=' ', end='\n', file=None)
     return fake_print
 
@@ -174,7 +175,7 @@ def __create_fake_input(buffer, give_right_answers=True):
     def fake_input(prompt=""):
         print(prompt, end="", flush=True)
 
-        new_sum = buffer.get_and_remove_last_sum()
+        new_sum = buffer.get_last_sum()
         getal1 = new_sum[0]
         bewerking = new_sum[1]
         getal2 = new_sum[2]
@@ -188,6 +189,10 @@ def __create_fake_input(buffer, give_right_answers=True):
             new_record = f'{getal1};{bewerking};{getal2};{outcome};{my_answer};fout'
 
         buffer.expected_sum_records.append(new_record)
+
+        print(my_answer)        # Print answer to test-output
+        buffer.clear_buffer()   # Remove answer from buffer to avoid problems with the next sum
+
         return str(my_answer)
 
     return fake_input
@@ -219,6 +224,10 @@ def test_rekensessie():
             right_answers_expected = test.sum_count if test.give_right_answers else 0
             __my_assert_args(function, (test.operator, test.sum_count, test.min, test.max), right_answers_expected, check_type=True)
 
+            builtins.open = original_open
+            builtins.print = original_print
+            builtins.input = original_input
+
             function_report = open(__my_test_file()).read()
             for record in io_buffer.expected_sum_records:
                 assert record in function_report, f'{record} verwacht maar niet aangetroffen in rapportbestand!'
@@ -239,10 +248,11 @@ def test_foutrapport():
     ]
 
     __create_test_file(test_sums)
-    original_open = builtins.open
-    builtins.open = __create_fake_open(original_open)
 
     try:
+        original_open = builtins.open
+        builtins.open = __create_fake_open(original_open)
+
         report = function()
 
         msg = f"Fout: {function.__name__}() geeft geen list terug als return-type"
@@ -273,10 +283,11 @@ def test_reset():
     ]
 
     __create_test_file(test_sums)
-    original_open = builtins.open
-    builtins.open = __create_fake_open(original_open)
 
     try:
+        original_open = builtins.open
+        builtins.open = __create_fake_open(original_open)
+
         function()
 
         # Controleer of de functie-uitvoer overeenkomt met de gewenste uitvoer
