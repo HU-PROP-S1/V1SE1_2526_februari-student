@@ -71,7 +71,7 @@ def main():
 
 
 def module_runner():
-    # main()              # Comment deze regel om je 'main() functie' uit te schakelen
+    main()              # Comment deze regel om je 'main() functie' uit te schakelen
     __run_tests()       # Comment deze regel om de HU-tests uit te schakelen
 
 
