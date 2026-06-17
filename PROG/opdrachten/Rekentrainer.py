@@ -116,8 +116,8 @@ def __my_test_file():
 
 
 def __create_test_file(sums, testfile=__my_test_file()):
-    kluis_mv_ev = 'som' if len(sums) == 1 else 'sommen'
-    print(f"Voor testdoeleinden wordt bestand {testfile} aangemaakt met {len(sums)} {kluis_mv_ev}... ", end="")
+    som_mv_ev = 'som' if len(sums) == 1 else 'sommen'
+    print(f"Voor testdoeleinden wordt bestand {testfile} aangemaakt met {len(sums)} {som_mv_ev}... ", end="")
 
     try:
         with open(testfile, 'w') as dummy_file:
@@ -204,9 +204,9 @@ def test_rekensessie():
     case = collections.namedtuple('case', 'operator sum_count level min max give_right_answers')
     testcases = [
         case('*', 3, 'makkelijk', 0, 10, True),
-        case('*', 3, 'makkelijk', 0, 10, False),
+        case('+', 3, 'makkelijk', 0, 10, False),
         case('*', 8, 'moeilijk', -10, 100, True),
-        case('*', 8, 'moeilijk', -10, 100, False)
+        case('-', 8, 'moeilijk', -10, 100, False)
     ]
 
     for test in testcases:
